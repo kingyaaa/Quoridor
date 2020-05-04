@@ -203,7 +203,8 @@ void MyPlayer::restart() {
 
 //我的实现
 Step MyPlayer::nextStep(const ChessboardChange& newChange) {
-    this->blocks.reserve(20);
+    this->blocks.reserve(25);
+    enemyPath.clear();
     MyMinPath = 0;
     EnemyMinPath = 0;
     if (this->targetY == 0) {                                // 判断并记录自己的目标 
@@ -219,19 +220,21 @@ Step MyPlayer::nextStep(const ChessboardChange& newChange) {
             this->contraryY = PLAYER1_LOC.y;                //记录对手的目标，与我方相反。
         }
     }
-    std::cout << newChange;                                  // 输出接收到的数据到控制台显示 
+    std::cout << newChange;                     
+    // 输出接收到的数据到控制台显示 
     if (!newChange.newEnemyBlockBar.isNan()) {               // 对方放置了挡板 
         BlockBar tmp = newChange.newEnemyBlockBar;
         tmp.normalization();                                 // 规范为 start 坐标小于 stop 坐标的形式 
         this->blocks.push_back(tmp);                         // 存储规范挡板 
     }
-
-    std::cout << std::endl << "对手的步数" << std::endl;
+    std::cout << std::endl << "对手的步数:";
     EnemyMinPath = bfs(newChange.enemyLoc, newChange.myLoc, this->contraryY);           //计算对手的最短路径
-    ShortPath(newChange.enemyLoc, newChange.myLoc);
-
+    std::cout << EnemyMinPath << std::endl;
+    ShortPath(newChange.enemyLoc, newChange.myLoc);                                     //打印出对手的最短路径 
+    setBlockBar(newChange.enemyLoc,newChange.myLoc,this->contraryY);                                                  //尝试放置木板，对对手造成阻碍
     std::cout << std::endl << "我的步数:";
-    MyMinPath =  bfs(newChange.myLoc, newChange.enemyLoc,this->targetY);                 
+    MyMinPath =  bfs(newChange.myLoc, newChange.enemyLoc,this->targetY);  
+    std::cout << MyMinPath << std::endl;
     Step step;                                               // 初始化 step 默认不移动不放板 
     step.myNewLoc = ShortPath(newChange.myLoc,newChange.enemyLoc);
     std::cout << std::endl << " -> " << step << std::endl;                // 输出我的决策到控制台显示 
@@ -340,13 +343,13 @@ int MyPlayer::bfs(const Location& myLoc,const Location& enemyLoc,int target)
             }
         }
     }
-    int sum = 0;
+    int sum = -1;
     Node* pr = myPath[myPath.size() - 1];
     while (pr != NULL) {
         sum++;
         pr = pr->preNode;
     }
-    std::cout << sum << std::endl;
+    //std::cout << sum << std::endl;
     return sum;
 }
 void MyPlayer::record(int x,int y,Node* p)
@@ -424,17 +427,14 @@ void MyPlayer::visit(int x, int y, Node* p)
 }
 Location MyPlayer::ShortPath(const Location& myLoc,const Location& enemyLoc)
 {
-    int sum = 0;
+    //int sum = -1;
     Location nextLoc;
     Node* p = myPath[myPath.size() - 1];
     //nextLoc = p->NodeLoc;
     //std::cout << std::endl;
     while (p != NULL)
     {
-        sum++;
-    //    if (p->preNode != NULL)
-    //        p = p->preNode;
-    //}
+        //sum++;
         std::cout << "(" << p->NodeLoc.x << "," << p->NodeLoc.y << ")";
         if (p->preNode != NULL)
             std::cout << "<-";
@@ -443,9 +443,20 @@ Location MyPlayer::ShortPath(const Location& myLoc,const Location& enemyLoc)
         }
         p = p->preNode;
     }
+    if (enemyPath.empty())//对手最短路径信息为空，则存储
+    {
+        Node* q = myPath[myPath.size() - 1];
+        while (q != NULL) {
+            Location pr;
+            pr = q->NodeLoc;
+            //q = q->preNode;
+            q = q->preNode;
+            enemyPath.push_back(pr);
+        }
+    }
     //std::cout << std::endl;
     //std::cout << sum << std::endl;
-    Destory();
+    //Destory();
     return nextLoc;
 }
 void MyPlayer::Destory()
@@ -453,6 +464,85 @@ void MyPlayer::Destory()
     for (int i = 0; i < myPath.size(); ++i) {
         delete myPath[i];
     }
+}
+BlockBar MyPlayer::setBlockBar(const Location& myLoc, const Location& enemyLoc, const int target)
+{
+    BlockBar tarBlockBar;
+    int distance = 0;
+    int dir[8][2] = { {-2,0},{-1,0},{-2,-1},{-1,-1},{-1,-1},{-1,-2},{0,-1},{0,-2} };//八种可能放置木板的情况的起始坐标较棋子坐标的偏移量。
+    //std::cout << std::endl;
+    std::vector<Location>::iterator it;
+    std::vector<BlockBar>::iterator bl;
+    for (it = enemyPath.begin();it != enemyPath.end();++it){
+        //std::cout << "(" << it->x << "," << it->y << ")";
+        //std::cout << "<-";
+        for (int i = 0; i < 8; ++i) {
+            Location newBlockBarStart;
+            Location newBlockBarStop;
+            newBlockBarStart.x = (*it).x + dir[i][0];
+            newBlockBarStart.y = (*it).y + dir[i][1];
+            if (i < 4) {
+                newBlockBarStop.x = newBlockBarStart.x + 2;
+                newBlockBarStop.y = newBlockBarStart.y;
+            }
+            else{
+                newBlockBarStop.x = newBlockBarStart.x;
+                newBlockBarStop.y = newBlockBarStart.y + 2;
+            }
+            BlockBar newBlockbar(newBlockBarStart, newBlockBarStop);
+            if (!newBlockbar.isNan() && !doublication(newBlockbar))                //表示挡板在合法范围内且挡板不与其他挡板重合
+            {
+                UpDateBlocks(newBlockbar);
+                //TODO
+                //bfs:对手的视角
+                distance = bfs(myLoc, enemyLoc, target);
+                ShortPath(enemyLoc, myLoc);
+                std::cout << std::endl;
+                BlockBarState imageState;
+                imageState.distance = distance;
+                imageState.ImageBlockBar = newBlockbar;
+                this->imagePath.push_back(imageState);
+                PopNewBlockbar(newBlockbar);
+            }
+        }
+    }
+    std::vector<BlockBarState>::iterator pv;
+    int influence = 0;
+    for (pv = this->imagePath.begin(); pv != this->imagePath.end(); ++pv) {
+        //std::cout << "预设木板：" << (*pv).ImageBlockBar << "bfs距离:" << (*pv).distance << std::endl;
+        if ((*pv).distance > influence)
+            influence = (*pv).distance;                                      //找出最大的distance
+    }
+    for (pv = this->imagePath.begin(); pv != this->imagePath.end(); ++pv) {
+        if (influence == (*pv).distance) {
+            tarBlockBar = (*pv).ImageBlockBar;
+            std::cout << "影响值" << (*pv).distance << std::endl;
+            break;
+        }
+    }
+    std::cout << "值得放置的木板:"<<tarBlockBar << std::endl;
+    this->imagePath.clear();
+    return tarBlockBar;//返回影响值最大的木板
+}
+bool MyPlayer::doublication(const BlockBar& newBlockBar)
+{
+    std::vector<BlockBar>::iterator it;
+    for (it = this->blocks.begin(); it != this->blocks.end(); ++it) {
+        //if (newBlockBar == (*it) || (*it).start.x < 1 || (*it).start.x > 8 || (*it).start.y < 1 || (*it).start.y > 8 || (*it).stop.x < 1 || (*it).stop.x > 8 || (*it).stop.y < 1 || (*it).stop.y > 8)
+        //    return true;
+        if (newBlockBar == (*it))
+            return true;
+    }
+    return false;
+}
+void MyPlayer::UpDateBlocks(const BlockBar& newBlockBar)
+{
+    this->blocks.push_back(newBlockBar);
+}
+void MyPlayer::PopNewBlockbar(const BlockBar& newBlockBar)
+{
+    std::vector<BlockBar>::iterator it = this->blocks.end() - 1;
+    it = this->blocks.erase(it);
 }
 // 面向对象实现结束
 
@@ -487,4 +577,3 @@ void MyPlayer::Destory()
 //}
 // 面向过程实现结束
 }
-
