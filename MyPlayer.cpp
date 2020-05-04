@@ -296,8 +296,8 @@ int MyPlayer::bfs(const Location& myLoc,const Location& enemyLoc,int target)
     //地图上的木板坐标需要更新,走过的点计为1,对手棋子所在的点计为2.
     //0 到 9
     //int matrix[9][9];
-    for (int i = 0; i < 10; i++) {
-        for (int j = 0; j < 10; j++) {
+    for (int i = 0; i < 11; i++) {
+        for (int j = 0; j < 11; j++) {
             matrix[i][j] = 0;
         }
     }
@@ -326,15 +326,16 @@ int MyPlayer::bfs(const Location& myLoc,const Location& enemyLoc,int target)
             //分情况看是否能移动
             //检测我方棋子能否跨越对手
             if (matrix[p->NodeLoc.x + dir[i][0]][p->NodeLoc.y + dir[i][1]] == 2) {
-                DetectSpan(enemyLoc, i, p);
+                DetectSpan(enemyLoc, i, p,target);
                 continue;
                 //visit越过棋子后的那个点
             }
             //if语句中包含了所有合法的情况
-            if (target == 9 && !isBlockBar(p->NodeLoc, dir[i][0], dir[i][1]) && p->NodeLoc.x + dir[i][0] >= 1 && p->NodeLoc.x + dir[i][0] <= SIZE && p->NodeLoc.y + dir[i][1] >= 1 && p->NodeLoc.y + dir[i][1] <= SIZE + 1 && matrix[p->NodeLoc.x + dir[i][0]][p->NodeLoc.y + dir[i][1]] == 0) {
+            //普通的跨越，是不会越过边线的
+            if (!isBlockBar(p->NodeLoc, dir[i][0], dir[i][1]) && p->NodeLoc.x + dir[i][0] >= 1 && p->NodeLoc.x + dir[i][0] <= SIZE && p->NodeLoc.y + dir[i][1] >= 1 && p->NodeLoc.y + dir[i][1] <= SIZE && matrix[p->NodeLoc.x + dir[i][0]][p->NodeLoc.y + dir[i][1]] == 0) {
                 record(p->NodeLoc.x + dir[i][0], p->NodeLoc.y + dir[i][1], p);
             }
-            if (target == 1 && !isBlockBar(p->NodeLoc, dir[i][0], dir[i][1]) && p->NodeLoc.x + dir[i][0] >= 1 && p->NodeLoc.x + dir[i][0] <= SIZE && p->NodeLoc.y + dir[i][1] >= 0 && p->NodeLoc.y + dir[i][1] <= SIZE && matrix[p->NodeLoc.x + dir[i][0]][p->NodeLoc.y + dir[i][1]] == 0) {
+            if (!isBlockBar(p->NodeLoc, dir[i][0], dir[i][1]) && p->NodeLoc.x + dir[i][0] >= 1 && p->NodeLoc.x + dir[i][0] <= SIZE && p->NodeLoc.y + dir[i][1] >= 1 && p->NodeLoc.y + dir[i][1] <= SIZE && matrix[p->NodeLoc.x + dir[i][0]][p->NodeLoc.y + dir[i][1]] == 0) {
                 record(p->NodeLoc.x + dir[i][0], p->NodeLoc.y + dir[i][1], p);
             }
         }
@@ -359,24 +360,41 @@ void MyPlayer::record(int x,int y,Node* p)
       int i:表示棋子的哪个方向有对手在眼前：0:上方；1：下方；2：左方；3：右方。
 返回值：true:可以合法跨越;false:这一步不能跨;
 ****************************************************************************/
-void MyPlayer::DetectSpan(const Location& enemyLoc, const int i,Node* p)
+void MyPlayer::DetectSpan(const Location& enemyLoc, const int i,Node* p,const int target)
 {
     Location tmp;
     //例：在向上跳跃棋子的过程中，被跳跃的棋子的正上方和正下方都不应该有木板遮挡。
+    //且棋子是可以飞过底线的
     if (i == 0) {
         tmp.x = enemyLoc.x;
         tmp.y = enemyLoc.y + 1;
-        if (!isBlockBar(enemyLoc, 0, 1) && !isBlockBar(enemyLoc,0,-1) && tmp.x >= 1 && tmp.x <= SIZE && tmp.y >= 1 && tmp.y <= SIZE && matrix[tmp.x][tmp.y] == 0){
-            record(tmp.x, tmp.y, p);
-            return;
+        if (target == 9) {
+            if (!isBlockBar(enemyLoc, 0, 1) && !isBlockBar(enemyLoc, 0, -1) && tmp.x >= 1 && tmp.x <= SIZE && tmp.y >= 1 && tmp.y <= SIZE + 1 && matrix[tmp.x][tmp.y] == 0) {
+                record(tmp.x, tmp.y, p);
+                return;
+            }
+        }
+        else {
+            if (!isBlockBar(enemyLoc, 0, 1) && !isBlockBar(enemyLoc, 0, -1) && tmp.x >= 1 && tmp.x <= SIZE && tmp.y >= 1 && tmp.y <= SIZE && matrix[tmp.x][tmp.y] == 0) {
+                record(tmp.x, tmp.y, p);
+                return;
+            }
         }
     }
     if (i == 1) {
         tmp.x = enemyLoc.x;
         tmp.y = enemyLoc.y - 1;
-        if (!isBlockBar(enemyLoc, 0, -1) && !isBlockBar(enemyLoc,0,1) && tmp.x >= 1 && tmp.x <= SIZE && tmp.y >= 1 && tmp.y <= SIZE && matrix[tmp.x][tmp.y] == 0) {
-            record(tmp.x, tmp.y, p);
-            return;
+        if (target == 1) {
+            if (!isBlockBar(enemyLoc, 0, -1) && !isBlockBar(enemyLoc, 0, 1) && tmp.x >= 1 && tmp.x <= SIZE && tmp.y >= 0 && tmp.y <= SIZE && matrix[tmp.x][tmp.y] == 0) {
+                record(tmp.x, tmp.y, p);
+                return;
+            }
+        }
+        else {
+            if (!isBlockBar(enemyLoc, 0, -1) && !isBlockBar(enemyLoc, 0, 1) && tmp.x >= 1 && tmp.x <= SIZE && tmp.y >= 1 && tmp.y <= SIZE && matrix[tmp.x][tmp.y] == 0) {
+                record(tmp.x, tmp.y, p);
+                return;
+            }
         }
     }
     if (i == 2) {

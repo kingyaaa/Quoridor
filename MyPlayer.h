@@ -25,7 +25,7 @@ private:
     void record(int x, int y,Node* p);
     Location ShortPath(const Location& myLoc,const Location& enemyLoc);//返回棋子下一步移动的坐标
     bool isBlockBar(const Location& myLoc,const int right,const int up);
-    void DetectSpan(const Location& myLoc,const int i,Node* p);
+    void DetectSpan(const Location& myLoc,const int i,Node* p,const int target);
     void Destory();
 public:
     MyPlayer(const std::string& key) : Player(key) {};            // 必须存在, 请勿修改 
