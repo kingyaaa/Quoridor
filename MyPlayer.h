@@ -22,8 +22,10 @@ private:
     std::vector<Location>enemyPath;
     std::vector<BlockBarState>imagePath;
     std::queue<Node*>qLoc;//队列，用于bfs
-    int targetY = 0;// 实例所需要, 可删 
+    int LeftBlockBar = 10;
+    int targetY = 0;// 实例所需要, 可删
     int contraryY = 0;
+    int steps = 0;
     Location randomWalk(const Location& myLoc, const Location& enemyLoc);   // 实例所需要, 可删 
     int bfs(const Location& myLoc, const Location& enemyLoc,int target);
     void clear(std::queue<Node*>& q);
