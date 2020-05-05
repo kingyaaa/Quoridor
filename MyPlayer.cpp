@@ -370,7 +370,11 @@ int MyPlayer::bfs(const Location& myLoc,const Location& enemyLoc,int target)
         }
     }
     int sum = -1;
-    Node* pr = myPath[myPath.size() - 1];
+    Node* pr = myPath[myPath.size() - 1];//最短路径的终点
+    if (target == 9 && pr->NodeLoc.y != target && pr->NodeLoc.y != target + 1)
+        return -1;
+    if (target == 1 && pr->NodeLoc.y != target && pr->NodeLoc.y != target - 1)
+        return -1;
     while (pr != NULL) {
         sum++;
         pr = pr->preNode;
@@ -521,14 +525,19 @@ BlockBar MyPlayer::setBlockBar(const Location& myLoc, const Location& enemyLoc, 
                 UpDateBlocks(newBlockbar);
                 //TODO
                 //bfs:对手的视角
-                distance = bfs(myLoc, enemyLoc, target);
-                //ShortPath(enemyLoc, myLoc);
-                //std::cout << std::endl;
-                BlockBarState imageState;
-                imageState.distance = distance;
-                imageState.ImageBlockBar = newBlockbar;
-                this->imagePath.push_back(imageState);
-                PopNewBlockbar(newBlockbar);
+                distance = bfs(myLoc, enemyLoc, target);//判断是否会把路堵死了,若路被封死，则bfs的返回值是-1;
+                if (distance != -1) {
+                    //ShortPath(enemyLoc, myLoc);
+                    //std::cout << std::endl;
+                    BlockBarState imageState;
+                    imageState.distance = distance;
+                    imageState.ImageBlockBar = newBlockbar;
+                    this->imagePath.push_back(imageState);
+                    PopNewBlockbar(newBlockbar);
+                }
+                if (distance == -1) {
+                    PopNewBlockbar(newBlockbar);
+                }
             }
         }
     }
