@@ -10,18 +10,25 @@ namespace QuoridorUtils {
     };
     struct BlockBarState {
         BlockBar ImageBlockBar;
-        int distance;
+        int m_distance;
+        int e_distance;
+        int DifferValue;
     };
 class MyPlayer final : public Player{
 private:
     int matrix[11][11];
     int MyMinPath;
     int EnemyMinPath;
+    int AssessOfSetBlock;
+    int AssessOfMoving;
+    int assess;
+    bool havetoMove;
     std::vector<BlockBar> blocks;// 实例所需要, 可删
     std::vector<Node*>myPath;//记录了所经过的点的图集
     std::vector<Location>enemyPath;
     std::vector<BlockBarState>imagePath;
     std::queue<Node*>qLoc;//队列，用于bfs
+    int enemyUsedBlockBlar = 0;
     int LeftBlockBar = 10;
     int targetY = 0;// 实例所需要, 可删
     int contraryY = 0;
@@ -31,6 +38,7 @@ private:
     void clear(std::queue<Node*>& q);
     void visit(int x, int y, Node* p);
     void record(int x, int y,Node* p);
+    int ContraryTarget(const int target);
     Location ShortPath(const Location& myLoc,const Location& enemyLoc);//返回棋子下一步移动的坐标
     bool isBlockBar(const Location& myLoc,const int right,const int up);
     void DetectSpan(const Location& myLoc,const int i,Node* p,const int target);

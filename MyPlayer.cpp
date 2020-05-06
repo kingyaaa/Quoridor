@@ -193,27 +193,32 @@ Step MyPlayer::nextStep(const ChessboardChange& newChange) {
 }
 
 ************************************************************************/
+
+/*************我********的*******实********现******************/
+
 void MyPlayer::restart() {
     this->blocks.clear();
     this->targetY = 0;
     this->contraryY = 0;
     this->LeftBlockBar = 10;
     this->steps = 0;
+    this->AssessOfSetBlock = 0;
+    this->AssessOfMoving = 0;
+    this->assess = 0;
+    this->enemyUsedBlockBlar = 0;
+    this->havetoMove = 0;
 }
 
-
-
-
-//我的实现
 Step MyPlayer::nextStep(const ChessboardChange& newChange) {
     //初始化准备
     this->blocks.reserve(25);
     enemyPath.clear();
     MyMinPath = 0;
     EnemyMinPath = 0;
-    
+    Location wantMove;
+    BlockBar wantSet;
     Step step;
-    steps++;
+    steps++;//统计自己走了多少步
     //判断方向:我方的目标线，对方的目标线
     if (this->targetY == 0) {                                // 判断并记录自己的目标 
         const auto d = std::chrono::system_clock::now().time_since_epoch();
@@ -223,15 +228,15 @@ Step MyPlayer::nextStep(const ChessboardChange& newChange) {
             this->targetY = PLAYER1_LOC.y;
             this->contraryY = PLAYER0_LOC.y;
         }
-        else {                                             // 己方初始坐标为 (5,9) 则目标为 (x,1) 
+        else {                                               // 己方初始坐标为 (5,9) 则目标为 (x,1) 
             this->targetY = PLAYER0_LOC.y;
-            this->contraryY = PLAYER1_LOC.y;                //记录对手的目标，与我方相反。
+            this->contraryY = PLAYER1_LOC.y;                 //记录对手的目标，与我方相反。
         }
     }
-    //接收目前的局势信息
-    std::cout << newChange;                     
-    // 输出接收到的数据到控制台显示 
-    if (!newChange.newEnemyBlockBar.isNan()) {               // 对方放置了挡板 
+                                                             //接收目前的局势信息
+    std::cout << newChange;                                  // 输出接收到的数据到控制台显示 
+    if (!newChange.newEnemyBlockBar.isNan()) {               // 对方放置了挡板
+        enemyUsedBlockBlar++;                                //累计对手放置了多少挡板，该值跟棋局的评估值有关           
         BlockBar tmp = newChange.newEnemyBlockBar;
         tmp.normalization();                                 // 规范为 start 坐标小于 stop 坐标的形式 
         this->blocks.push_back(tmp);                         // 存储规范挡板 
@@ -242,24 +247,46 @@ Step MyPlayer::nextStep(const ChessboardChange& newChange) {
     std::cout << EnemyMinPath << std::endl;
     ShortPath(newChange.enemyLoc, newChange.myLoc);                                     //打印出对手的最短路径 
     //Step step;                                               // 初始化 step 默认不移动不放板 
-    if(LeftBlockBar == 0)
-    {
-        std::cout << "我的目标线：y = " << targetY << std::endl;
-        std::cout << std::endl << "我的步数:";
-        MyMinPath = bfs(newChange.myLoc, newChange.enemyLoc, this->targetY);
-        std::cout << MyMinPath << std::endl;
-        step.myNewLoc = ShortPath(newChange.myLoc, newChange.enemyLoc);
-        std::cout << std::endl << " -> " << step << std::endl;                // 输出我的决策到控制台显示
+                                                               //移动我的棋子
+    //std::cout << "我的目标线：y = " << targetY << std::endl;
+    std::cout << std::endl << "我的步数:";
+    MyMinPath = bfs(newChange.myLoc, newChange.enemyLoc, this->targetY);
+    std::cout << MyMinPath << std::endl;
+    wantMove = ShortPath(newChange.myLoc, newChange.enemyLoc);                    //想移动的坐标，待用
+    if (LeftBlockBar == 0) {
+        //只能选择走路,不存在估值的比较了。
+        step.myNewLoc = wantMove;
+        std::cout << step << std::endl;
+        return step;
     }
-    if (LeftBlockBar > 0) {                                                                               //在木板还有剩余的情况下可以尝试放板子
-        step.myNewBlockBar = setBlockBar(newChange.enemyLoc, newChange.myLoc, this->contraryY);           //尝试放置木板，对对手造成阻碍
+    //std::cout << std::endl << " 想移动-> " << step << std::endl;                // 输出我的决策到控制台显示
+    //AssessOfMoving = EnemyMinPath * (1 + enemyUsedBlockBlar) - MyMinPath * (11 - LeftBlockBar);
+    if (MyMinPath - 2 <= EnemyMinPath) {
+        AssessOfMoving = 1000;
+    }
+    if (MyMinPath > EnemyMinPath)
+        AssessOfMoving = -1000;
+    if (AssessOfMoving >= AssessOfSetBlock) {                                     //移动的评估值更大,更优
+        step.myNewLoc = wantMove;
+        std::cout << step << std::endl;
+        return step;
+    }
+    wantSet = setBlockBar(newChange.enemyLoc, newChange.myLoc, this->contraryY);
+    if (havetoMove == 1) {
+        havetoMove = 0;
+        step.myNewLoc = wantMove;
+        std::cout << step << std::endl;
+        return step;
+    }
+    if (AssessOfSetBlock > AssessOfMoving) {                                      //放木板的评估值更大，更优
+        step.myNewBlockBar = wantSet;
         this->blocks.push_back(step.myNewBlockBar);
         LeftBlockBar--;
         step.myNewLoc.x = -1;
         step.myNewLoc.y = -1;
+        std::cout << step << std::endl;
+        return step;
     }
-    std::cout << step << std::endl;
-    return step;
 }
 /**********************************
     检测是否前方有挡板，若有挡板则下一步不能走这个方向。
@@ -320,7 +347,7 @@ int MyPlayer::bfs(const Location& myLoc,const Location& enemyLoc,int target)
     //地图上的木板坐标需要更新,走过的点计为1,对手棋子所在的点计为2.
     //0 到 9
     //int matrix[9][9];
-    int bfsSteps = 0;
+    int bfsSteps = 0;//bfsSteps==1时表示是寻路时迈出的第一步，用来判断这一步有没有对手棋子挡在脸前
     for (int i = 0; i < 11; i++) {
         for (int j = 0; j < 11; j++) {
             matrix[i][j] = 0;
@@ -495,10 +522,18 @@ void MyPlayer::Destory()
         delete myPath[i];
     }
 }
+int MyPlayer::ContraryTarget(const int target)
+{
+    if (target == 9)
+        return 1;
+    if (target == 1)
+        return 9;
+}
 BlockBar MyPlayer::setBlockBar(const Location& myLoc, const Location& enemyLoc, const int target)
 {
     BlockBar tarBlockBar;
-    int distance = 0;
+    int E_distance = 0;
+    int M_distance = 0;
     int dir[8][2] = { {-2,0},{-1,0},{-2,-1},{-1,-1},{-1,-1},{-1,-2},{0,-1},{0,-2} };//八种可能放置木板的情况的起始坐标较棋子坐标的偏移量。
     //std::cout << std::endl;
     std::vector<Location>::reverse_iterator it;//反向迭代器
@@ -520,43 +555,50 @@ BlockBar MyPlayer::setBlockBar(const Location& myLoc, const Location& enemyLoc, 
                 newBlockBarStop.y = newBlockBarStart.y + 2;
             }
             BlockBar newBlockbar(newBlockBarStart, newBlockBarStop);
-            if (!newBlockbar.isNan() && !doublication(newBlockbar))                //表示挡板在合法范围内且挡板不与其他挡板重合
+            if (!doublication(newBlockbar))                //表示挡板在合法范围内且挡板不与其他挡板重合
             {
                 UpDateBlocks(newBlockbar);
                 //TODO
                 //bfs:对手的视角
-                distance = bfs(myLoc, enemyLoc, target);//判断是否会把路堵死了,若路被封死，则bfs的返回值是-1;
-                if (distance != -1) {
+                M_distance = bfs(enemyLoc, myLoc, ContraryTarget(target));
+                E_distance = bfs(myLoc, enemyLoc, target);//判断是否会把路堵死了,若路被封死，则bfs的返回值是-1;
+                if (E_distance != -1 && M_distance != -1) {
                     //ShortPath(enemyLoc, myLoc);
                     //std::cout << std::endl;
                     BlockBarState imageState;
-                    imageState.distance = distance;
+                    imageState.e_distance = E_distance;//imggeState.distance↑ = bfs(敌人)↑ - bfs(我)↓
+                    imageState.m_distance = M_distance;
+                    imageState.DifferValue = E_distance - M_distance;
                     imageState.ImageBlockBar = newBlockbar;
                     this->imagePath.push_back(imageState);
                     PopNewBlockbar(newBlockbar);
                 }
-                if (distance == -1) {
+                if (E_distance == -1 || M_distance == -1) {
                     PopNewBlockbar(newBlockbar);
                 }
             }
         }
     }
     std::vector<BlockBarState>::iterator pv;
-    int influence = 0;
-    for (pv = this->imagePath.begin(); pv != this->imagePath.end() - 1; ++pv) {
+    int influence = -100;
+    for (pv = this->imagePath.begin(); pv != this->imagePath.end(); ++pv) {
         //std::cout << "预设木板：" << (*pv).ImageBlockBar << "bfs距离:" << (*pv).distance << std::endl;
-        if ((*pv).distance > influence)
-            influence = (*pv).distance;                                      //找出最大的distance
+        if ((*pv).DifferValue > influence)
+            influence = (*pv).DifferValue;                                      //找出两个棋子最大的distance差值
     }
     for (pv = this->imagePath.begin(); pv != this->imagePath.end(); ++pv) {
-        if (influence == (*pv).distance) {
+        if (influence == (*pv).DifferValue) {
             tarBlockBar = (*pv).ImageBlockBar;
-            std::cout << "影响值" << (*pv).distance << std::endl;
+            std::cout << "影响值" << (*pv).DifferValue << std::endl;
             break;
         }
     }
+    if (this->imagePath.empty()) {
+        this->havetoMove = 1;
+        return tarBlockBar;
+    }
+    AssessOfSetBlock = (enemyUsedBlockBlar + 1) * (*pv).e_distance - (*pv).m_distance * (10 - LeftBlockBar + 1);//本次若放置木板将产生的棋局评估值
     std::cout << "值得放置的木板:"<<tarBlockBar << std::endl;
-    //this->blocks.push_back(tarBlockBar);
     this->imagePath.clear();
     return tarBlockBar;//返回影响值最大的木板
 }
@@ -566,13 +608,14 @@ bool MyPlayer::doublication(const BlockBar& newBlockBar)
     for (it = this->blocks.begin(); it != this->blocks.end(); ++it) {
         //if (newBlockBar == (*it) || (*it).start.x < 1 || (*it).start.x > 8 || (*it).start.y < 1 || (*it).start.y > 8 || (*it).stop.x < 1 || (*it).stop.x > 8 || (*it).stop.y < 1 || (*it).stop.y > 8)
         //    return true;
+        //非法的情况，任一种都将为false
         if ((*it).isH())//横的挡板
         {
-            if (newBlockBar.start.x >= (*it).start.x - 1 && newBlockBar.start.x <= (*it).start.x + 1 && newBlockBar.start.y == (*it).start.y)
+            if (newBlockBar.start.y <= 0 || newBlockBar.start.y >= 9 || (newBlockBar.start.x >= (*it).start.x - 1 && newBlockBar.start.x <= (*it).start.x + 1 && newBlockBar.start.y == (*it).start.y))
                 return true;
         }
         if ((*it).isV()) {
-            if (newBlockBar.start.y >= (*it).start.y - 1 && newBlockBar.start.y <= (*it).start.y + 1 && newBlockBar.start.x == (*it).start.x)
+            if (newBlockBar.start.x <= 0 || newBlockBar.start.x >= 9 || (newBlockBar.start.y >= (*it).start.y - 1 && newBlockBar.start.y <= (*it).start.y + 1 && newBlockBar.start.x == (*it).start.x))
                 return true;
         }
     }
