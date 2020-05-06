@@ -260,19 +260,27 @@ Step MyPlayer::nextStep(const ChessboardChange& newChange) {
         return step;
     }
     //std::cout << std::endl << " 想移动-> " << step << std::endl;                // 输出我的决策到控制台显示
-    //AssessOfMoving = EnemyMinPath * (1 + enemyUsedBlockBlar) - MyMinPath * (11 - LeftBlockBar);
+    
+    //AssessOfMoving = EnemyMinPath * (11 - enemyUsedBlockBlar) - MyMinPath * LeftBlockBar;
+    //AssessOfMoving = EnemyMinPath - MyMinPath;
     wantSet = setBlockBar(newChange.enemyLoc, newChange.myLoc, this->contraryY);
-    //评估函数：其实是对分出了各种情况
-    if (MyMinPath - 2 <= EnemyMinPath) {
-        AssessOfMoving = 1000;
-    }
-    if (MyMinPath > EnemyMinPath || EnemyMinPath < 3)
+    
+    /******************************************
+    //评估函数：其实是分出了各种情况
+    //if (MyMinPath <= EnemyMinPath - 3) {
+    //    AssessOfMoving = 1000;
+    //}
+     (EnemyMinPath < 5)
         AssessOfMoving = -1000;
-    if (AssessOfMoving >= AssessOfSetBlock) {                                     //移动的评估值更大,更优
+    //std::cout << "AssessOfMoving =" << AssessOfMoving << std::endl;
+    //std::cout << "AssessOfSetBlock = " << AssessOfSetBlock << std::endl;
+    //if (AssessOfMoving >= AssessOfSetBlock) {                                     //移动的评估值更大,更优
+    ********************************************/
+    /*if(AssessOfMoving >= AssessOfSetBlock){
         step.myNewLoc = wantMove;
         std::cout << step << std::endl;
         return step;
-    }
+    }*/
     //wantSet = setBlockBar(newChange.enemyLoc, newChange.myLoc, this->contraryY);
     if (havetoMove == 1) {
         havetoMove = 0;
@@ -280,7 +288,8 @@ Step MyPlayer::nextStep(const ChessboardChange& newChange) {
         std::cout << step << std::endl;
         return step;
     }
-    if (AssessOfSetBlock > AssessOfMoving) {                                      //放木板的评估值更大，更优
+    if (LeftBlockBar > 0){                                      //放木板的评估值更大，更优
+    //if(AssessOfMoving < AssessOfSetBlock){
         step.myNewBlockBar = wantSet;
         this->blocks.push_back(step.myNewBlockBar);
         LeftBlockBar--;
@@ -571,6 +580,7 @@ BlockBar MyPlayer::setBlockBar(const Location& myLoc, const Location& enemyLoc, 
                     imageState.e_distance = E_distance;//imggeState.distance↑ = bfs(敌人)↑ - bfs(我)↓
                     imageState.m_distance = M_distance;
                     imageState.DifferValue = E_distance - M_distance;
+                    imageState.DifferValue = E_distance;
                     imageState.ImageBlockBar = newBlockbar;
                     this->imagePath.push_back(imageState);
                     PopNewBlockbar(newBlockbar);
@@ -596,10 +606,11 @@ BlockBar MyPlayer::setBlockBar(const Location& myLoc, const Location& enemyLoc, 
         if (influence == (*pv).DifferValue) {
             tarBlockBar = (*pv).ImageBlockBar;
             std::cout << "影响值" << (*pv).DifferValue << std::endl;
+            AssessOfSetBlock = (*pv).DifferValue;
             break;
         }
     }
-    AssessOfSetBlock = (enemyUsedBlockBlar + 1) * (*pv).e_distance - (*pv).m_distance * (10 - LeftBlockBar + 1);//本次若放置木板将产生的棋局评估值
+    //AssessOfSetBlock = (11 - enemyUsedBlockBlar) * (*pv).e_distance - (*pv).m_distance * (LeftBlockBar);//本次若放置木板将产生的棋局评估值
     std::cout << "值得放置的木板:"<<tarBlockBar << std::endl;
     this->imagePath.clear();
     return tarBlockBar;//返回影响值最大的木板
