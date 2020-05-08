@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <queue>
+#include<deque>
 #include "Player.h"
 
 namespace QuoridorUtils {
@@ -23,7 +24,7 @@ private:
     int AssessOfMoving;
     //int assess;
     bool havetoMove;
-    std::vector<BlockBar> blocks;// 实例所需要, 可删
+    std::deque<BlockBar> blocks;// 实例所需要, 可删
     std::vector<Node*>myPath;//记录了所经过的点的图集
     std::vector<Location>enemyPath;
     std::vector<BlockBarState>imagePath;

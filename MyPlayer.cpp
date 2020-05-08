@@ -211,7 +211,7 @@ void MyPlayer::restart() {
 
 Step MyPlayer::nextStep(const ChessboardChange& newChange) {
     //初始化准备
-    this->blocks.reserve(25);
+    //this->blocks.reserve(25);
     enemyPath.clear();
     MyMinPath = 0;
     EnemyMinPath = 0;
@@ -256,7 +256,7 @@ Step MyPlayer::nextStep(const ChessboardChange& newChange) {
     if (LeftBlockBar == 0) {
         //只能选择走路,不存在估值的比较了。
         step.myNewLoc = wantMove;
-        //std::cout << step << std::endl;
+        std::cout << step << std::endl;
         return step;
     }
     //std::cout << std::endl << " 想移动-> " << step << std::endl;                // 输出我的决策到控制台显示
@@ -271,7 +271,7 @@ Step MyPlayer::nextStep(const ChessboardChange& newChange) {
         LeftBlockBar--;
         step.myNewLoc.x = -1;
         step.myNewLoc.y = -1;
-        //std::cout << step << std::endl;
+        std::cout << step << std::endl;
         return step;
     }
     /******************************************
@@ -294,7 +294,7 @@ Step MyPlayer::nextStep(const ChessboardChange& newChange) {
     if (havetoMove == 1) {
         havetoMove = 0;
         step.myNewLoc = wantMove;
-        //std::cout << step << std::endl;
+        std::cout << step << std::endl;
         return step;
     }
     if (LeftBlockBar > 0){                                      //放木板的评估值更大，更优
@@ -304,7 +304,7 @@ Step MyPlayer::nextStep(const ChessboardChange& newChange) {
         LeftBlockBar--;
         step.myNewLoc.x = -1;
         step.myNewLoc.y = -1;
-        //std::cout << step << std::endl;
+        std::cout << step << std::endl;
         return step;
     }
 }
@@ -314,7 +314,7 @@ Step MyPlayer::nextStep(const ChessboardChange& newChange) {
 ***********************************/
 bool MyPlayer::isBlockBar(const Location& myLoc,const int right,const int up)
 {
-    std::vector<BlockBar>::iterator it;
+    std::deque<BlockBar>::iterator it;
     if (up == 1 && right == 0)//检测上方
     {
         for (it = this->blocks.begin(); it != this->blocks.end();it++) {
@@ -635,7 +635,7 @@ bool MyPlayer::doublication(const BlockBar& newBlockBar)
     {
         return true;
     }
-    std::vector<BlockBar>::iterator it;
+    std::deque<BlockBar>::iterator it;
     for (it = this->blocks.begin(); it != this->blocks.end(); ++it) {
         //if (newBlockBar == (*it) || (*it).start.x < 1 || (*it).start.x > 8 || (*it).start.y < 1 || (*it).start.y > 8 || (*it).stop.x < 1 || (*it).stop.x > 8 || (*it).stop.y < 1 || (*it).stop.y > 8)
         //    return true;
@@ -660,7 +660,7 @@ void MyPlayer::UpDateBlocks(const BlockBar& newBlockBar)
 }
 void MyPlayer::PopNewBlockbar(const BlockBar& newBlockBar)
 {
-    std::vector<BlockBar>::iterator it = this->blocks.end() - 1;
+    std::deque<BlockBar>::iterator it = this->blocks.end() - 1;
     it = this->blocks.erase(it);
 }
 // 面向对象实现结束
