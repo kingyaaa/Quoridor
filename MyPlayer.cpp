@@ -3,6 +3,7 @@
 #include <iostream>
 #include <cstdlib>
 #include <ctime>
+#define random(a,b) (rand() % (b - a + 1))+ a
 // 面向过程实现开始
 //using namespace QuoridorUtils;
 //int targetY = 0;
@@ -253,6 +254,8 @@ Step MyPlayer::nextStep(const ChessboardChange& newChange) {
     MyMinPath = bfs(newChange.myLoc, newChange.enemyLoc, this->targetY);
     //std::cout << MyMinPath << std::endl;
     wantMove = ShortPath(newChange.myLoc, newChange.enemyLoc);                    //想移动的坐标，待用
+    
+    //只能走路，无需多想
     if (LeftBlockBar == 0) {
         //只能选择走路,不存在估值的比较了。
         step.myNewLoc = wantMove;
@@ -264,6 +267,8 @@ Step MyPlayer::nextStep(const ChessboardChange& newChange) {
     //AssessOfMoving = EnemyMinPath * (11 - enemyUsedBlockBlar) - MyMinPath * LeftBlockBar;
     //AssessOfMoving = EnemyMinPath - MyMinPath;
     wantSet = setBlockBar(newChange.enemyLoc, newChange.myLoc, this->contraryY);
+    
+    //紧急情况，无需多想。
     if (EnemyMinPath <= 5 && havetoMove == 0) {                                      //放木板的评估值更大，更优
     //if(AssessOfMoving < AssessOfSetBlock){
         step.myNewBlockBar = wantSet;
@@ -291,19 +296,37 @@ Step MyPlayer::nextStep(const ChessboardChange& newChange) {
         return step;
     }*/
     //wantSet = setBlockBar(newChange.enemyLoc, newChange.myLoc, this->contraryY);
-    if (havetoMove == 1) {
+    
+    if (havetoMove == 1 || MyMinPath <= EnemyMinPath - 3) {
         havetoMove = 0;
         step.myNewLoc = wantMove;
         std::cout << step << std::endl;
         return step;
     }
-    if (LeftBlockBar > 0){                                      //放木板的评估值更大，更优
+    if (MyMinPath >= EnemyMinPath){                                      //放木板的评估值更大，更优
     //if(AssessOfMoving < AssessOfSetBlock){
         step.myNewBlockBar = wantSet;
         this->blocks.push_back(step.myNewBlockBar);
         LeftBlockBar--;
         step.myNewLoc.x = -1;
         step.myNewLoc.y = -1;
+        std::cout << step << std::endl;
+        return step;
+    }
+    //不相上下的情况,以走路为主
+    srand((int)time(0));
+    int i = random(1, 3);
+    if (i == 1) {
+        step.myNewBlockBar = wantSet;
+        this->blocks.push_back(step.myNewBlockBar);
+        LeftBlockBar--;
+        step.myNewLoc.x = -1;
+        step.myNewLoc.y = -1;
+        std::cout << step << std::endl;
+        return step;
+    }
+    else {
+        step.myNewLoc = wantMove;
         std::cout << step << std::endl;
         return step;
     }
