@@ -201,10 +201,10 @@ void MyPlayer::restart() {
     this->targetY = 0;
     this->contraryY = 0;
     this->LeftBlockBar = 10;
-    this->steps = 0;
+    //this->steps = 0;
     this->AssessOfSetBlock = 0;
     this->AssessOfMoving = 0;
-    this->assess = 0;
+    //this->assess = 0;
     this->enemyUsedBlockBlar = 0;
     this->havetoMove = 0;
 }
@@ -218,7 +218,7 @@ Step MyPlayer::nextStep(const ChessboardChange& newChange) {
     Location wantMove;
     BlockBar wantSet;
     Step step;
-    steps++;//统计自己走了多少步
+    //steps++;//统计自己走了多少步
     //判断方向:我方的目标线，对方的目标线
     if (this->targetY == 0) {                                // 判断并记录自己的目标 
         const auto d = std::chrono::system_clock::now().time_since_epoch();
@@ -234,7 +234,7 @@ Step MyPlayer::nextStep(const ChessboardChange& newChange) {
         }
     }
                                                              //接收目前的局势信息
-    std::cout << newChange;                                  // 输出接收到的数据到控制台显示 
+    std::cout << newChange << std::endl;                                  // 输出接收到的数据到控制台显示 
     if (!newChange.newEnemyBlockBar.isNan()) {               // 对方放置了挡板
         enemyUsedBlockBlar++;                                //累计对手放置了多少挡板，该值跟棋局的评估值有关           
         BlockBar tmp = newChange.newEnemyBlockBar;
@@ -651,6 +651,8 @@ bool MyPlayer::doublication(const BlockBar& newBlockBar)
         }
     }
     return false;
+    //********************************/
+    //if
 }
 void MyPlayer::UpDateBlocks(const BlockBar& newBlockBar)
 {

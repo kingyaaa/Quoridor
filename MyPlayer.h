@@ -21,7 +21,7 @@ private:
     int EnemyMinPath;
     int AssessOfSetBlock;
     int AssessOfMoving;
-    int assess;
+    //int assess;
     bool havetoMove;
     std::vector<BlockBar> blocks;// 实例所需要, 可删
     std::vector<Node*>myPath;//记录了所经过的点的图集
@@ -32,7 +32,7 @@ private:
     int LeftBlockBar = 10;
     int targetY = 0;// 实例所需要, 可删
     int contraryY = 0;
-    int steps = 0;
+    //int steps = 0;
     Location randomWalk(const Location& myLoc, const Location& enemyLoc);   // 实例所需要, 可删 
     int bfs(const Location& myLoc, const Location& enemyLoc,int target);
     void clear(std::queue<Node*>& q);
