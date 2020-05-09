@@ -1,9 +1,4 @@
 #include "MyPlayer.h"
-#include <chrono>
-#include <iostream>
-#include <cstdlib>
-#include <ctime>
-#define random(a,b) (rand() % (b - a + 1))+ a
 // 面向过程实现开始
 //using namespace QuoridorUtils;
 //int targetY = 0;
@@ -213,6 +208,9 @@ void MyPlayer::restart() {
 Step MyPlayer::nextStep(const ChessboardChange& newChange) {
     //初始化准备
     //this->blocks.reserve(25);
+    clock_t a, b;
+    double d;
+    a = clock(); //开始时间
     enemyPath.clear();
     MyMinPath = 0;
     EnemyMinPath = 0;
@@ -234,7 +232,7 @@ Step MyPlayer::nextStep(const ChessboardChange& newChange) {
             this->contraryY = PLAYER1_LOC.y;                 //记录对手的目标，与我方相反。
         }
     }
-                                                             //接收目前的局势信息
+                                                           //接收目前的局势信息
     std::cout << newChange << std::endl;                                  // 输出接收到的数据到控制台显示 
     if (!newChange.newEnemyBlockBar.isNan()) {               // 对方放置了挡板
         enemyUsedBlockBlar++;                                //累计对手放置了多少挡板，该值跟棋局的评估值有关           
@@ -260,6 +258,7 @@ Step MyPlayer::nextStep(const ChessboardChange& newChange) {
         //只能选择走路,不存在估值的比较了。
         step.myNewLoc = wantMove;
         std::cout << step << std::endl;
+
         return step;
     }
     //std::cout << std::endl << " 想移动-> " << step << std::endl;                // 输出我的决策到控制台显示
@@ -271,12 +270,16 @@ Step MyPlayer::nextStep(const ChessboardChange& newChange) {
     //紧急情况，无需多想。
     if (EnemyMinPath <= 5 && havetoMove == 0) {                                      //放木板的评估值更大，更优
     //if(AssessOfMoving < AssessOfSetBlock){
+        //wantSet = setBlockBar(newChange.enemyLoc, newChange.myLoc, this->contraryY);
         step.myNewBlockBar = wantSet;
         this->blocks.push_back(step.myNewBlockBar);
         LeftBlockBar--;
         step.myNewLoc.x = -1;
         step.myNewLoc.y = -1;
         std::cout << step << std::endl;
+        b = clock(); //结束时间    
+        d = (double)(b - a) / CLOCKS_PER_SEC; //计算运行时长（单位：秒
+        std::cout << "本次耗时" << d << std::endl;
         return step;
     }
     /******************************************
@@ -301,9 +304,12 @@ Step MyPlayer::nextStep(const ChessboardChange& newChange) {
         havetoMove = 0;
         step.myNewLoc = wantMove;
         std::cout << step << std::endl;
+        b = clock(); //结束时间  
+        d = (double)(b - a) / CLOCKS_PER_SEC; //计算运行时长（单位：秒
+        std::cout << "本次耗时" << d << std::endl;
         return step;
     }
-    if (MyMinPath >= EnemyMinPath){                                      //放木板的评估值更大，更优
+    if (MyMinPath > EnemyMinPath){                                      //放木板的评估值更大，更优
     //if(AssessOfMoving < AssessOfSetBlock){
         step.myNewBlockBar = wantSet;
         this->blocks.push_back(step.myNewBlockBar);
@@ -311,6 +317,9 @@ Step MyPlayer::nextStep(const ChessboardChange& newChange) {
         step.myNewLoc.x = -1;
         step.myNewLoc.y = -1;
         std::cout << step << std::endl;
+        b = clock(); //结束时间  
+        d = (double)(b - a) / CLOCKS_PER_SEC; //计算运行时长（单位：秒
+        std::cout << "本次耗时" << d << std::endl;
         return step;
     }
     //不相上下的情况,以走路为主
@@ -323,11 +332,17 @@ Step MyPlayer::nextStep(const ChessboardChange& newChange) {
         step.myNewLoc.x = -1;
         step.myNewLoc.y = -1;
         std::cout << step << std::endl;
+        b = clock(); //结束时间
+        d = (double)(b - a) / CLOCKS_PER_SEC; //计算运行时长（单位：秒
+        std::cout << "本次耗时" << d << std::endl;
         return step;
     }
     else {
         step.myNewLoc = wantMove;
         std::cout << step << std::endl;
+        b = clock(); //结束时间
+        d = (double)(b - a) / CLOCKS_PER_SEC; //计算运行时长（单位：秒
+        std::cout << "本次耗时"<< d << std::endl;
         return step;
     }
 }
@@ -649,12 +664,12 @@ BlockBar MyPlayer::setBlockBar(const Location& myLoc, const Location& enemyLoc, 
 }
 bool MyPlayer::doublication(const BlockBar& newBlockBar)
 {
-    //先判断有没有
-    if (newBlockBar.isH() && (newBlockBar.start.y <= 0 || newBlockBar.start.y >= 9))
+    //先判断有没有越界
+    if (newBlockBar.isH() && (newBlockBar.start.x < 0 || newBlockBar.start.x >= 8 || newBlockBar.start.y <=0 || newBlockBar.start.y >= 9))
     {
         return true;
     }
-    if (newBlockBar.isV() && (newBlockBar.start.x <= 0 || newBlockBar.start.x >= 9))
+    if (newBlockBar.isV() && (newBlockBar.start.x <= 0 || newBlockBar.start.x >= 9 || newBlockBar.start.y < 0 || newBlockBar.start.y >= 8))
     {
         return true;
     }

@@ -2,6 +2,11 @@
 #include <vector>
 #include <queue>
 #include<deque>
+#include <chrono>
+#include <iostream>
+#include <cstdlib>
+#include <ctime>
+#define random(a,b) (rand() % (b - a + 1))+ a
 #include "Player.h"
 
 namespace QuoridorUtils {
