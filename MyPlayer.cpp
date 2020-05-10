@@ -282,6 +282,31 @@ Step MyPlayer::nextStep(const ChessboardChange& newChange) {
         std::cout << "本次耗时" << d << std::endl;
         return step;
     }
+    /*if (EnemyMinPath > 8 && LeftBlockBar > 4)
+    {
+        srand((int)time(0));
+        int i = random(1, 3);
+        if (i == 1) {
+            step.myNewBlockBar = wantSet;
+            this->blocks.push_back(step.myNewBlockBar);
+            LeftBlockBar--;
+            step.myNewLoc.x = -1;
+            step.myNewLoc.y = -1;
+            std::cout << step << std::endl;
+            b = clock(); //结束时间
+            d = (double)(b - a) / CLOCKS_PER_SEC; //计算运行时长（单位：秒
+            std::cout << "本次耗时" << d << std::endl;
+            return step;
+        }
+        else {
+            step.myNewLoc = wantMove;
+            std::cout << step << std::endl;
+            b = clock(); //结束时间
+            d = (double)(b - a) / CLOCKS_PER_SEC; //计算运行时长（单位：秒
+            std::cout << "本次耗时" << d << std::endl;
+            return step;
+        }
+    }*/
     /******************************************
     //评估函数：其实是分出了各种情况
     //if (MyMinPath <= EnemyMinPath - 3) {
@@ -299,8 +324,7 @@ Step MyPlayer::nextStep(const ChessboardChange& newChange) {
         return step;
     }*/
     //wantSet = setBlockBar(newChange.enemyLoc, newChange.myLoc, this->contraryY);
-    
-    if (havetoMove == 1 || MyMinPath <= EnemyMinPath - 3) {
+    if (havetoMove == 1 || MyMinPath <= EnemyMinPath - 1) {
         havetoMove = 0;
         step.myNewLoc = wantMove;
         std::cout << step << std::endl;
@@ -310,7 +334,6 @@ Step MyPlayer::nextStep(const ChessboardChange& newChange) {
         return step;
     }
     if (MyMinPath > EnemyMinPath){                                      //放木板的评估值更大，更优
-    //if(AssessOfMoving < AssessOfSetBlock){
         step.myNewBlockBar = wantSet;
         this->blocks.push_back(step.myNewBlockBar);
         LeftBlockBar--;
@@ -325,7 +348,7 @@ Step MyPlayer::nextStep(const ChessboardChange& newChange) {
     //不相上下的情况,以走路为主
     srand((int)time(0));
     int i = random(1, 3);
-    if (i == 1) {
+    if (i == 1 || i == 2) {
         step.myNewBlockBar = wantSet;
         this->blocks.push_back(step.myNewBlockBar);
         LeftBlockBar--;
@@ -650,6 +673,10 @@ BlockBar MyPlayer::setBlockBar(const Location& myLoc, const Location& enemyLoc, 
         return tarBlockBar;
     }
     for (pv = this->imagePath.begin(); pv != this->imagePath.end(); ++pv) {
+        if (influence == (*pv).DifferValue && (*pv).e_distance == EnemyMinPath) {
+            this->havetoMove = 1;
+            return tarBlockBar;
+        }
         if (influence == (*pv).DifferValue) {
             tarBlockBar = (*pv).ImageBlockBar;
             //std::cout << "影响值" << (*pv).DifferValue << std::endl;
