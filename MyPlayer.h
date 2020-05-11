@@ -30,9 +30,9 @@ private:
     //int assess;
     bool havetoMove;
     std::deque<BlockBar> blocks;// 实例所需要, 可删
-    std::vector<Node*>myPath;//记录了所经过的点的图集
-    std::vector<Location>enemyPath;
-    std::vector<BlockBarState>imagePath;
+    std::deque<Node*>myPath;//记录了所经过的点的图集
+    std::deque<Location>enemyPath;
+    std::deque<BlockBarState>imagePath;
     std::queue<Node*>qLoc;//队列，用于bfs
     int enemyUsedBlockBlar = 0;
     int LeftBlockBar = 10;

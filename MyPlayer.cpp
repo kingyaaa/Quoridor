@@ -254,7 +254,7 @@ Step MyPlayer::nextStep(const ChessboardChange& newChange) {
     wantMove = ShortPath(newChange.myLoc, newChange.enemyLoc);                    //想移动的坐标，待用
     
     //只能走路，无需多想
-    if (LeftBlockBar == 0) {
+    if (LeftBlockBar == 0 || EnemyMinPath > 15) {
         //只能选择走路,不存在估值的比较了。
         step.myNewLoc = wantMove;
         std::cout << step << std::endl;
@@ -267,10 +267,12 @@ Step MyPlayer::nextStep(const ChessboardChange& newChange) {
     //AssessOfMoving = EnemyMinPath - MyMinPath;
     wantSet = setBlockBar(newChange.enemyLoc, newChange.myLoc, this->contraryY);
     
+    /*********************************************
+    以下是基于各种可能出现的情况而指定的出棋策略
+    **********************************************/
+
     //紧急情况，无需多想。
     if (EnemyMinPath <= 5 && havetoMove == 0) {                                      //放木板的评估值更大，更优
-    //if(AssessOfMoving < AssessOfSetBlock){
-        //wantSet = setBlockBar(newChange.enemyLoc, newChange.myLoc, this->contraryY);
         step.myNewBlockBar = wantSet;
         this->blocks.push_back(step.myNewBlockBar);
         LeftBlockBar--;
@@ -323,8 +325,7 @@ Step MyPlayer::nextStep(const ChessboardChange& newChange) {
         std::cout << step << std::endl;
         return step;
     }*/
-    //wantSet = setBlockBar(newChange.enemyLoc, newChange.myLoc, this->contraryY);
-    if (havetoMove == 1 || MyMinPath <= EnemyMinPath - 1) {
+    if (havetoMove == 1 || MyMinPath <= EnemyMinPath - 2) {
         havetoMove = 0;
         step.myNewLoc = wantMove;
         std::cout << step << std::endl;
@@ -347,8 +348,8 @@ Step MyPlayer::nextStep(const ChessboardChange& newChange) {
     }
     //不相上下的情况,以走路为主
     srand((int)time(0));
-    int i = random(1, 3);
-    if (i == 1 || i == 2) {
+    int i = random(1, 2);
+    if (i == 1) {
         step.myNewBlockBar = wantSet;
         this->blocks.push_back(step.myNewBlockBar);
         LeftBlockBar--;
@@ -612,17 +613,19 @@ int MyPlayer::ContraryTarget(const int target)
 }
 BlockBar MyPlayer::setBlockBar(const Location& myLoc, const Location& enemyLoc, const int target)
 {
+    int count = 0;
     BlockBar tarBlockBar;
     int E_distance = 0;
     int M_distance = 0;
     int dir[8][2] = { {-2,0},{-1,0},{-2,-1},{-1,-1},{-1,-1},{-1,-2},{0,-1},{0,-2} };//八种可能放置木板的情况的起始坐标较棋子坐标的偏移量。
     //std::cout << std::endl;
-    std::vector<Location>::reverse_iterator it;//反向迭代器
-    std::vector<BlockBar>::iterator bl;
+    std::deque<Location>::reverse_iterator it;//反向迭代器
+    std::deque<BlockBar>::iterator bl;
     for (it = enemyPath.rbegin();it != enemyPath.rend();++it){
         //std::cout << "(" << it->x << "," << it->y << ")";
         //std::cout << "<-";
         for (int i = 0; i < 8; ++i) {
+            count++;
             Location newBlockBarStart;
             Location newBlockBarStop;
             newBlockBarStart.x = (*it).x + dir[i][0];
@@ -659,16 +662,18 @@ BlockBar MyPlayer::setBlockBar(const Location& myLoc, const Location& enemyLoc, 
                     PopNewBlockbar(newBlockbar);
                 }
             }
+            if (count == 160)
+                break;
         }
     }
-    std::vector<BlockBarState>::iterator pv;
+    std::deque<BlockBarState>::iterator pv;
     int influence = -100;
     for (pv = this->imagePath.begin(); pv != this->imagePath.end(); ++pv) {
         //std::cout << "预设木板：" << (*pv).ImageBlockBar << "bfs距离:" << (*pv).distance << std::endl;
         if ((*pv).DifferValue > influence)
             influence = (*pv).DifferValue;                                      //找出两个棋子最大的distance差值
     }
-    if (influence < 1 || this->imagePath.empty()) {
+    if ((influence < 1 && influence > -2) || this->imagePath.empty()) {
         this->havetoMove = 1;
         return tarBlockBar;
     }
