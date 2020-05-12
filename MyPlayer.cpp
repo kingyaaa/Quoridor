@@ -208,6 +208,7 @@ void MyPlayer::restart() {
 Step MyPlayer::nextStep(const ChessboardChange& newChange) {
     //初始化准备
     //this->blocks.reserve(25);
+    this->havetoMove = 0;
     clock_t a, b;
     double d;
     a = clock(); //开始时间
@@ -653,6 +654,9 @@ BlockBar MyPlayer::setBlockBar(const Location& myLoc, const Location& enemyLoc, 
                 //bfs:对手的视角
                 M_distance = bfs(enemyLoc, myLoc, ContraryTarget(target));
                 E_distance = bfs(myLoc, enemyLoc, target);//判断是否会把路堵死了,若路被封死，则bfs的返回值是-1;
+                if (E_distance == -1 || M_distance == -1 || E_distance == EnemyMinPath) {
+                    PopNewBlockbar(newBlockbar);
+                }
                 if (E_distance != -1 && M_distance != -1) {
                     //ShortPath(enemyLoc, myLoc);
                     //std::cout << std::endl;
@@ -665,9 +669,6 @@ BlockBar MyPlayer::setBlockBar(const Location& myLoc, const Location& enemyLoc, 
                     this->imagePath.push_back(imageState);
                     PopNewBlockbar(newBlockbar);
                 }
-                if (E_distance == -1 || M_distance == -1) {
-                    PopNewBlockbar(newBlockbar);
-                }
             }
             //if (count == 160)
             //    break;
@@ -675,21 +676,21 @@ BlockBar MyPlayer::setBlockBar(const Location& myLoc, const Location& enemyLoc, 
     }
     std::deque<BlockBarState>::iterator pv;
     int influence = -100;
+    if (this->imagePath.empty())
+    {
+        this->havetoMove = 1;
+        return tarBlockBar;
+    }
     for (pv = this->imagePath.begin(); pv != this->imagePath.end(); ++pv) {
         //std::cout << "预设木板：" << (*pv).ImageBlockBar << "bfs距离:" << (*pv).distance << std::endl;
         if ((*pv).DifferValue > influence)
             influence = (*pv).DifferValue;                                      //找出两个棋子最大的distance差值
     }
-    if (this->imagePath.empty()) {
+    if (influence < 0) {
         this->havetoMove = 1;
         return tarBlockBar;
     }
     for (pv = this->imagePath.begin(); pv != this->imagePath.end(); ++pv) {
-        if ((influence == (*pv).DifferValue && (*pv).e_distance == EnemyMinPath) || influence < -1) {
-            std::cout << (*pv).ImageBlockBar << std::endl;
-            this->havetoMove = 1;
-            return tarBlockBar;
-        }
         if (influence == (*pv).DifferValue) {
             tarBlockBar = (*pv).ImageBlockBar;
             //std::cout << "影响值" << (*pv).DifferValue << std::endl;
