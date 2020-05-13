@@ -198,8 +198,8 @@ void MyPlayer::restart() {
     this->contraryY = 0;
     this->LeftBlockBar = 10;
     //this->steps = 0;
-    this->AssessOfSetBlock = 0;
-    this->AssessOfMoving = 0;
+    //this->AssessOfSetBlock = 0;
+    //this->AssessOfMoving = 0;
     //this->assess = 0;
     this->enemyUsedBlockBlar = 0;
     this->havetoMove = 0;
@@ -207,11 +207,9 @@ void MyPlayer::restart() {
 
 Step MyPlayer::nextStep(const ChessboardChange& newChange) {
     //初始化准备
-    //this->blocks.reserve(25);
-    this->havetoMove = 0;
-    clock_t a, b;
-    double d;
-    a = clock(); //开始时间
+    //clock_t a, b;
+    //double d;
+    //a = clock(); //开始时间
     enemyPath.clear();
     MyMinPath = 0;
     EnemyMinPath = 0;
@@ -272,74 +270,25 @@ Step MyPlayer::nextStep(const ChessboardChange& newChange) {
     **********************************************/
 
     //紧急情况，无需多想。
-    /*if (EnemyMinPath <= 5 && havetoMove == 0) {                                      //放木板的评估值更大，更优
+    if (EnemyMinPath <= 5 && havetoMove == 0) {                                      //放木板的评估值更大，更优
         step.myNewBlockBar = wantSet;
         this->blocks.push_back(step.myNewBlockBar);
         LeftBlockBar--;
         step.myNewLoc.x = -1;
         step.myNewLoc.y = -1;
         std::cout << step << std::endl;
-        b = clock(); //结束时间    
-        d = (double)(b - a) / CLOCKS_PER_SEC; //计算运行时长（单位：秒
-        std::cout << "本次耗时" << d << std::endl;
+        //b = clock(); //结束时间    
+        //d = (double)(b - a) / CLOCKS_PER_SEC; //计算运行时长（单位：秒
+        //std::cout << "本次耗时" << d << std::endl;
         return step;
-    }*/
-    /*if (EnemyMinPath > 8 && LeftBlockBar > 4)
-    {
-        srand((int)time(0));
-        int i = random(1, 3);
-        if (i == 1) {
-            step.myNewBlockBar = wantSet;
-            this->blocks.push_back(step.myNewBlockBar);
-            LeftBlockBar--;
-            step.myNewLoc.x = -1;
-            step.myNewLoc.y = -1;
-            std::cout << step << std::endl;
-            b = clock(); //结束时间
-            d = (double)(b - a) / CLOCKS_PER_SEC; //计算运行时长（单位：秒
-            std::cout << "本次耗时" << d << std::endl;
-            return step;
-        }
-        else {
-            step.myNewLoc = wantMove;
-            std::cout << step << std::endl;
-            b = clock(); //结束时间
-            d = (double)(b - a) / CLOCKS_PER_SEC; //计算运行时长（单位：秒
-            std::cout << "本次耗时" << d << std::endl;
-            return step;
-        }
-    }*/
-    /******************************************
-    //评估函数：其实是分出了各种情况
-    //if (MyMinPath <= EnemyMinPath - 3) {
-    //    AssessOfMoving = 1000;
-    //}
-     (EnemyMinPath < 5)
-        AssessOfMoving = -1000;
-    //std::cout << "AssessOfMoving =" << AssessOfMoving << std::endl;
-    //std::cout << "AssessOfSetBlock = " << AssessOfSetBlock << std::endl;
-    //if (AssessOfMoving >= AssessOfSetBlock) {                                     //移动的评估值更大,更优
-    ********************************************/
-    /*if(AssessOfMoving >= AssessOfSetBlock){
-        step.myNewLoc = wantMove;
-        std::cout << step << std::endl;
-        return step;
-    }*/
-    /*if (havetoMove == 1 || MyMinPath <= EnemyMinPath - 2) {
+    }
+    if (MyMinPath <= EnemyMinPath - 1 || havetoMove == 1) {
         havetoMove = 0;
         step.myNewLoc = wantMove;
         std::cout << step << std::endl;
-        b = clock(); //结束时间  
-        d = (double)(b - a) / CLOCKS_PER_SEC; //计算运行时长（单位：秒
-        std::cout << "本次耗时" << d << std::endl;
-        return step;
-    }*/
-    if (MyMinPath < EnemyMinPath || havetoMove == 1) {
-        step.myNewLoc = wantMove;
-        std::cout << step << std::endl;
-        b = clock(); //结束时间  
-        d = (double)(b - a) / CLOCKS_PER_SEC; //计算运行时长（单位：秒
-        std::cout << "本次耗时" << d << std::endl;
+        //b = clock(); //结束时间  
+        //d = (double)(b - a) / CLOCKS_PER_SEC; //计算运行时长（单位：秒
+        //std::cout << "本次耗时" << d << std::endl;
         return step;
     }
     if (MyMinPath > EnemyMinPath){                                      //放木板的评估值更大，更优
@@ -349,34 +298,34 @@ Step MyPlayer::nextStep(const ChessboardChange& newChange) {
         step.myNewLoc.x = -1;
         step.myNewLoc.y = -1;
         std::cout << step << std::endl;
-        b = clock(); //结束时间  
-        d = (double)(b - a) / CLOCKS_PER_SEC; //计算运行时长（单位：秒
-        std::cout << "本次耗时" << d << std::endl;
+        //b = clock(); //结束时间  
+        //d = (double)(b - a) / CLOCKS_PER_SEC; //计算运行时长（单位：秒
+        //std::cout << "本次耗时" << d << std::endl;
         return step;
     }
     //不相上下的情况,以走路为主
-    //srand((int)time(0));
-    //int i = random(1, 2);
-    //if (i == 1) {
+    srand((int)time(0));
+    int i = random(1, 3);
+    if (i == 1 || i == 2) {
         step.myNewBlockBar = wantSet;
         this->blocks.push_back(step.myNewBlockBar);
         LeftBlockBar--;
         step.myNewLoc.x = -1;
         step.myNewLoc.y = -1;
         std::cout << step << std::endl;
-        b = clock(); //结束时间
-        d = (double)(b - a) / CLOCKS_PER_SEC; //计算运行时长（单位：秒
-        std::cout << "本次耗时" << d << std::endl;
+        //b = clock(); //结束时间
+        //d = (double)(b - a) / CLOCKS_PER_SEC; //计算运行时长（单位：秒
+        //std::cout << "本次耗时" << d << std::endl;
         return step;
-    //}
-    /*else {
+    }
+    else {
         step.myNewLoc = wantMove;
         std::cout << step << std::endl;
-        b = clock(); //结束时间
-        d = (double)(b - a) / CLOCKS_PER_SEC; //计算运行时长（单位：秒
-        std::cout << "本次耗时"<< d << std::endl;
+        //b = clock(); //结束时间
+        //d = (double)(b - a) / CLOCKS_PER_SEC; //计算运行时长（单位：秒
+        //std::cout << "本次耗时"<< d << std::endl;
         return step;
-    }*/
+    }
 }
 /**********************************
     检测是否前方有挡板，若有挡板则下一步不能走这个方向。
@@ -577,14 +526,12 @@ Location MyPlayer::ShortPath(const Location& myLoc,const Location& enemyLoc)
     //int sum = -1;
     Location nextLoc;
     Node* p = myPath[myPath.size() - 1];
-    //nextLoc = p->NodeLoc;
-    //std::cout << std::endl;
     while (p != NULL)
     {
         //sum++;
         //std::cout << "(" << p->NodeLoc.x << "," << p->NodeLoc.y << ")";
         //if (p->preNode != NULL)
-        //    std::cout << "<-";
+        //   std::cout << "<-";
         if (p->preNode != NULL && p->preNode->NodeLoc == myLoc) {
             nextLoc = p->NodeLoc;
         }
@@ -621,7 +568,7 @@ int MyPlayer::ContraryTarget(const int target)
 }
 BlockBar MyPlayer::setBlockBar(const Location& myLoc, const Location& enemyLoc, const int target)
 {
-    //int count = 0;
+    int count = 0;
     BlockBar tarBlockBar;
     int E_distance = 0;
     int M_distance = 0;
@@ -656,6 +603,7 @@ BlockBar MyPlayer::setBlockBar(const Location& myLoc, const Location& enemyLoc, 
                 E_distance = bfs(myLoc, enemyLoc, target);//判断是否会把路堵死了,若路被封死，则bfs的返回值是-1;
                 if (E_distance == -1 || M_distance == -1 || E_distance == EnemyMinPath) {
                     PopNewBlockbar(newBlockbar);
+                    continue;
                 }
                 if (E_distance != -1 && M_distance != -1) {
                     //ShortPath(enemyLoc, myLoc);
@@ -663,19 +611,20 @@ BlockBar MyPlayer::setBlockBar(const Location& myLoc, const Location& enemyLoc, 
                     BlockBarState imageState;
                     imageState.e_distance = E_distance;//imggeState.distance↑ = bfs(敌人)↑ - bfs(我)↓
                     imageState.m_distance = M_distance;
-                    imageState.DifferValue = E_distance - M_distance - EnemyMinPath + MyMinPath;
-                    //imageState.DifferValue = E_distance;
+                    imageState.DifferValue = (E_distance - M_distance) - (EnemyMinPath - MyMinPath);
+                    //imageState.DifferValue = E_distance - M_distance;
                     imageState.ImageBlockBar = newBlockbar;
                     this->imagePath.push_back(imageState);
                     PopNewBlockbar(newBlockbar);
                 }
             }
-            //if (count == 160)
-            //    break;
+            if (count == 80)
+                break;
         }
     }
     std::deque<BlockBarState>::iterator pv;
     int influence = -100;
+
     if (this->imagePath.empty())
     {
         this->havetoMove = 1;
@@ -686,7 +635,8 @@ BlockBar MyPlayer::setBlockBar(const Location& myLoc, const Location& enemyLoc, 
         if ((*pv).DifferValue > influence)
             influence = (*pv).DifferValue;                                      //找出两个棋子最大的distance差值
     }
-    if (influence < 0) {
+    if (influence <= 0)
+    {
         this->havetoMove = 1;
         return tarBlockBar;
     }
@@ -694,11 +644,9 @@ BlockBar MyPlayer::setBlockBar(const Location& myLoc, const Location& enemyLoc, 
         if (influence == (*pv).DifferValue) {
             tarBlockBar = (*pv).ImageBlockBar;
             //std::cout << "影响值" << (*pv).DifferValue << std::endl;
-            AssessOfSetBlock = (*pv).DifferValue;
             break;
         }
     }
-    //AssessOfSetBlock = (11 - enemyUsedBlockBlar) * (*pv).e_distance - (*pv).m_distance * (LeftBlockBar);//本次若放置木板将产生的棋局评估值
     //std::cout << "值得放置的木板:"<<tarBlockBar << std::endl;
     this->imagePath.clear();
     return tarBlockBar;//返回影响值最大的木板
@@ -730,8 +678,6 @@ bool MyPlayer::doublication(const BlockBar& newBlockBar)
         }
     }
     return false;
-    //********************************/
-    //if
 }
 void MyPlayer::UpDateBlocks(const BlockBar& newBlockBar)
 {

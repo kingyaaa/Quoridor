@@ -25,8 +25,8 @@ private:
     int matrix[11][11];
     int MyMinPath;
     int EnemyMinPath;
-    int AssessOfSetBlock;
-    int AssessOfMoving;
+    //int AssessOfSetBlock;
+    //int AssessOfMoving;
     //int assess;
     bool havetoMove;
     std::deque<BlockBar> blocks;// 实例所需要, 可删
